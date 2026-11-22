@@ -1,0 +1,722 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>24130002-sketch</title>
+<meta name="description" content="Cybersecurity and networking projects by 24130002-sketch.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0c0f12;
+  --line:#243039;
+  --text:#e4ebe9;
+  --muted:#8a9a96;
+  --signal:#76dccb;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--text);font-family:"Archivo",system-ui,sans-serif;line-height:1.6;font-size:1.0625rem}
+a{color:var(--signal);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+
+.wrap{max-width:960px;margin:0 auto;padding:0 1.25rem}
+
+.hero{position:relative;min-height:94vh;display:flex;align-items:flex-end;overflow:hidden;border-bottom:1px solid var(--line)}
+#net{position:absolute;inset:0;width:100%;height:100%;z-index:0;touch-action:pan-y}
+.hero-copy{position:relative;z-index:1;padding:6rem 1.25rem 4rem;pointer-events:none}
+.hero-copy .btn{pointer-events:auto}
+h1{font-stretch:125%;font-weight:800;font-size:clamp(2.6rem,7vw,5.2rem);line-height:.98;letter-spacing:-.02em;max-width:12ch}
+.lede{margin-top:1.25rem;max-width:44ch;color:var(--muted)}
+.hint{margin-top:.9rem;font-size:.85rem;color:var(--muted);opacity:.8}
+.links{margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap}
+.btn{display:inline-block;padding:.7rem 1.2rem;border:1px solid var(--signal);border-radius:4px;color:var(--ink);background:var(--signal);font-weight:600}
+.btn.ghost{background:transparent;color:var(--signal)}
+.btn:hover{text-decoration:none;filter:brightness(1.08)}
+
+.tip{position:absolute;left:0;top:0;pointer-events:none;opacity:0;z-index:2;white-space:nowrap;background:rgba(12,15,18,.9);border:1px solid var(--line);color:var(--text);padding:.3rem .6rem;font-size:.9rem;border-radius:3px;transition:opacity .2s}
+
+section{padding:5rem 0;border-bottom:1px solid var(--line)}
+h2{font-stretch:112%;font-weight:700;font-size:1.6rem;margin-bottom:2rem}
+
+.projects{display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+.project{background:var(--ink);padding:2rem;display:flex;flex-direction:column;gap:.6rem}
+.project h3{font-size:1.25rem;font-weight:700}
+.project p{color:var(--muted);max-width:60ch}
+.tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:auto;padding-top:.6rem;list-style:none}
+.tags li{font-size:.85rem;color:var(--signal);border:1px solid var(--line);padding:.15rem .6rem;border-radius:3px}
+
+.about p{max-width:62ch;color:var(--muted)}
+.about p+p{margin-top:1rem}
+
+footer{padding:2.5rem 0;color:var(--muted);font-size:.9rem}
+
+@media (min-width:720px){.projects{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <canvas id="net" aria-hidden="true"></canvas>
+  <div class="tip" id="tip" role="status"></div>
+  <div class="wrap hero-copy">
+    <h1>Learning how networks talk, and where they leak.</h1>
+    <p class="lede">I'm studying cybersecurity and networking. This is where I keep the tools I build and what I learn from them.</p>
+    <p class="hint">Drag to spin the Earth. Tap a bright pin to open its project.</p>
+    <p class="hint" id="status" style="color:#76dccb;opacity:1">Loading globe...</p>
+    <div class="links">
+      <a class="btn" href="#work">See projects</a>
+      <a class="btn ghost" href="https://github.com/24130002-sketch">GitHub</a>
+    </div>
+  </div>
+</header>
+
+<section id="work">
+  <div class="wrap">
+    <h2>Projects</h2>
+    <div class="projects" id="projects"></div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap about">
+    <h2>About</h2>
+    <p>I'm working through networking fundamentals and security tooling by building small, practical projects. Each one is a way to test what I've read against a real network.</p>
+    <p>Currently focused on network scanning, host discovery, and packet analysis.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">24130002-sketch</div>
+</footer>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+const statusEl = document.getElementById("status");
+window.__globeOK = false;
+window.addEventListener("error", e => { statusEl.textContent = "Globe error: " + e.message; });
+setTimeout(() => {
+  if (!window.__globeOK) statusEl.textContent = "Globe did not load. Check your connection, then reload.";
+}, 10000);
+
+import * as THREE from "three";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+/* ---------- Projects: edit this list ---------- */
+const PROJECTS = [
+  {
+    name: "nmap-network-scanning",
+    summary: "Network scanning and host discovery.",
+    tags: ["Nmap", "Host discovery", "Networking"],
+    repo: "https://github.com/24130002-sketch/nmap-network-scanning"
+  }
+  // Add more projects in the same shape:
+  // { name: "repo-name", summary: "One line.", tags: ["Tag"], repo: "https://github.com/24130002-sketch/repo-name" }
+];
+
+/* Where each project pin sits (latitude, longitude). Add one pair per project. */
+const PIN_SPOTS = [[12, -40], [-15, -60], [35, -40], [-40, 130]];
+
+/* ---------- Project cards (plain DOM, works without WebGL) ---------- */
+const list = document.getElementById("projects");
+PROJECTS.forEach(p => {
+  const card = document.createElement("article");
+  card.className = "project";
+
+  const h = document.createElement("h3");
+  const a = document.createElement("a");
+  a.href = p.repo;
+  a.target = "_blank";
+  a.rel = "noopener";
+  a.textContent = p.name;
+  h.append(a);
+
+  const desc = document.createElement("p");
+  desc.textContent = p.summary;
+
+  const tags = document.createElement("ul");
+  tags.className = "tags";
+  p.tags.forEach(t => {
+    const li = document.createElement("li");
+    li.textContent = t;
+    tags.append(li);
+  });
+
+  card.append(h, desc, tags);
+  list.append(card);
+}); 
+  /* ---------- 3D Earth hero ---------- */
+const canvas = document.getElementById("net");
+const hero = canvas.parentElement;
+const tip = document.getElementById("tip");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+} catch (err) {
+  canvas.remove(); // no WebGL: the page still works without the graphic
+  statusEl.textContent = "This browser cannot show 3D graphics.";
+}
+
+if (renderer) {
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.75));
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x0c0f12);
+  const camera = new THREE.PerspectiveCamera(40, 1, 0.1, 200);
+  camera.position.z = 12;
+
+  const ACCENT = 0xff3b3b;
+  const R = 3;
+  const world = new THREE.Group(); // everything on the globe spins together
+  scene.add(world);
+
+  // Textures from the three.js example set
+  const loader = new THREE.TextureLoader();
+  const texBase = "https://unpkg.com/three@0.160.0/examples/textures/planets/";
+  const load = name => loader.load(texBase + name);
+
+  // Lighting: a fixed sun, so the night side shows city lights
+  scene.add(new THREE.AmbientLight(0x6f8f96, 0.35));
+  const sun = new THREE.DirectionalLight(0xffffff, 2.2);
+  sun.position.set(6, 2, 5);
+  scene.add(sun);
+
+  // Earth surface with specular ocean and night lights
+  const earth = new THREE.Mesh(
+    new THREE.SphereGeometry(R, 96, 64),
+    new THREE.MeshPhongMaterial({
+      map: load("earth_atmos_2048.jpg"),
+      specularMap: load("earth_specular_2048.jpg"),
+      specular: new THREE.Color(0x335555),
+      emissiveMap: load("earth_lights_2048.png"),
+      emissive: new THREE.Color(0xffc98a),
+      emissiveIntensity: 0.9,
+      shininess: 14
+    })
+  );
+  world.add(earth);
+
+  // Cloud layer, spinning slightly faster than the surface
+  const clouds = new THREE.Mesh(
+    new THREE.SphereGeometry(R * 1.012, 96, 64),
+    new THREE.MeshPhongMaterial({
+      map: load("earth_clouds_1024.png"),
+      transparent: true,
+      opacity: 0.5,
+      depthWrite: false
+    })
+  );
+  world.add(clouds);
+
+  // Atmosphere: a Fresnel glow ring around the edge
+  const atmosphere = new THREE.Mesh(
+    new THREE.SphereGeometry(R * 1.16, 64, 48),
+    new THREE.ShaderMaterial({
+      vertexShader: `
+        varying vec3 vN;
+        void main() {
+          vN = normalize(normalMatrix * normal);
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
+      fragmentShader: `
+        varying vec3 vN;
+        void main() {
+          float i = pow(0.62 - dot(vN, vec3(0.0, 0.0, 1.0)), 3.0);
+          gl_FragColor = vec4(1.0, 0.23, 0.23, 1.0) * clamp(i, 0.0, 1.0);
+        }`,
+      blending: THREE.AdditiveBlending,
+      side: THREE.BackSide,
+      transparent: true,
+      depthWrite: false
+    })
+  );
+  scene.add(atmosphere);
+
+  // Latitude/longitude to a unit direction
+  function dirFromLatLon(lat, lon) {
+    const phi = (90 - lat) * Math.PI / 180;
+    const th = (lon + 180) * Math.PI / 180;
+    return new THREE.Vector3(-Math.sin(phi) * Math.cos(th), Math.cos(phi), Math.sin(phi) * Math.sin(th));
+  }
+
+  // Pins: a core dot, a pulsing ring, and (for projects) a larger invisible hit target
+  const pinGroup = new THREE.Group();
+  world.add(pinGroup);
+  const ripples = [];
+  const projectPins = [];
+
+  function addPin(lat, lon, project) {
+    const n = dirFromLatLon(lat, lon);
+    const p = n.clone().multiplyScalar(R * 1.01);
+
+    const core = new THREE.Mesh(
+      new THREE.SphereGeometry(0.035, 12, 12),
+      new THREE.MeshBasicMaterial({ color: project ? 0xffffff : ACCENT })
+    );
+    core.position.copy(p);
+    pinGroup.add(core);
+
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.07, 0.09, 40),
+      new THREE.MeshBasicMaterial({
+        color: ACCENT, transparent: true, opacity: 0.8, side: THREE.DoubleSide,
+        depthWrite: false, blending: THREE.AdditiveBlending
+      })
+    );
+    ring.position.copy(n.clone().multiplyScalar(R * 1.012));
+    ring.lookAt(ring.position.clone().add(n));
+    pinGroup.add(ring);
+    ripples.push({ ring, off: Math.random() });
+
+    if (project) {
+      core.scale.setScalar(1.8);
+      const hit = new THREE.Mesh(
+        new THREE.SphereGeometry(0.22, 12, 12),
+        new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false })
+      );
+      hit.position.copy(p);
+      hit.userData.project = project;
+      pinGroup.add(hit);
+      projectPins.push({ core, hit });
+    }
+  }
+
+  // Major cities
+  const CITY_LATLON = [
+    [37.8, -122.4], [51.5, -0.1], [35.7, 139.7], [-33.9, 151.2], [28.6, 77.2],
+    [-23.5, -46.6], [1.35, 103.8], [55.7, 37.6], [40.7, -74.0], [-1.3, 36.8],
+    [19.4, -99.1], [30.0, 31.2], [-26.2, 28.0], [39.9, 116.4]
+  ];
+  CITY_LATLON.forEach(([la, lo]) => addPin(la, lo, null));
+
+  // Project pins
+  PROJECTS.forEach((p, k) => {
+    const [la, lo] = PIN_SPOTS[k % PIN_SPOTS.length];
+    addPin(la, lo, p);
+  });
+
+  const cityDirs = CITY_LATLON.map(([la, lo]) => dirFromLatLon(la, lo).multiplyScalar(R * 1.01));
+
+  // Districts: towers built from many small pieces, joined by spines and links
+  const TOWERS = 16;
+  const PIECE = 0.045;                 // height of one small piece
+  const up = new THREE.Vector3(0, 1, 0);
+
+  // Plan every tower first so the piece count is known
+  const specs = cityDirs.map(c => {
+    const n = c.clone().normalize();
+    const side = Math.abs(n.y) < 0.9 ? up : new THREE.Vector3(1, 0, 0);
+    const t1 = new THREE.Vector3().crossVectors(n, side).normalize();
+    const t2 = new THREE.Vector3().crossVectors(n, t1);
+    const towers = [];
+    for (let k = 0; k < TOWERS; k++) {
+      const rad = Math.sqrt(Math.random()) * 0.32;
+      const a = Math.random() * Math.PI * 2;
+      const off = t1.clone().multiplyScalar(Math.cos(a) * rad).add(t2.clone().multiplyScalar(Math.sin(a) * rad));
+      const h = 0.12 + (1 - rad / 0.32) * 0.35 + Math.random() * 0.12; // taller near the centre
+      const w = 0.05 + Math.random() * 0.03;
+      towers.push({ off, h, w, layers: Math.max(2, Math.round(h / PIECE)) });
+    }
+    return { n, hub: n.clone().multiplyScalar(R + 0.8), towers };
+  });
+
+  let totalPieces = 0;
+  specs.forEach(s => s.towers.forEach(t => { totalPieces += t.layers; }));
+
+  const pieceGeo = new THREE.BoxGeometry(1, 1, 1);
+  pieceGeo.translate(0, 0.5, 0); // each piece sits on the layer below it
+  const pieceSolid = new THREE.InstancedMesh(
+    pieceGeo,
+    new THREE.MeshPhongMaterial({ color: 0x3a1214, emissive: 0x2a0a0b, shininess: 30 }),
+    totalPieces
+  );
+  const pieceWire = new THREE.InstancedMesh(
+    pieceGeo,
+    new THREE.MeshBasicMaterial({
+      color: ACCENT, wireframe: true, transparent: true, opacity: 0.5,
+      polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1
+    }),
+    totalPieces
+  );
+  world.add(pieceSolid, pieceWire);
+
+  const hubs = [];
+  const homes = [];
+  const netVerts = [];
+  const quat = new THREE.Quaternion();
+  const mtx = new THREE.Matrix4();
+  const sc = new THREE.Vector3();
+  const at = new THREE.Vector3();
+  let slot = 0;
+
+  specs.forEach(s => {
+    quat.setFromUnitVectors(up, s.n);
+    hubs.push(s.hub);
+    const roof = [];
+
+    s.towers.forEach(t => {
+      const base = s.n.clone().multiplyScalar(R * 1.002).add(t.off);
+      for (let L = 0; L < t.layers; L++) {
+        at.copy(base).addScaledVector(s.n, L * PIECE);
+        sc.set(t.w * 0.9, PIECE * 0.8, t.w * 0.9); // small gap between pieces
+        mtx.compose(at, quat, sc);
+        pieceSolid.setMatrixAt(slot, mtx);
+        pieceWire.setMatrixAt(slot, mtx);
+        homes.push({ p: at.clone(), s: sc.clone(), q: quat.clone() });
+        slot++;
+      }
+      const top = base.clone().addScaledVector(s.n, t.layers * PIECE);
+      netVerts.push(base.x, base.y, base.z, top.x, top.y, top.z); // spine joins the pieces
+      roof.push(top);
+    });
+
+    // Links between nearby rooftops in the same district
+    roof.forEach((p, i) => roof.forEach((q, j) => {
+      if (j > i && p.distanceTo(q) < 0.3) netVerts.push(p.x, p.y, p.z, q.x, q.y, q.z);
+    }));
+    // Spokes from every rooftop up to the hub
+    roof.forEach(p => netVerts.push(p.x, p.y, p.z, s.hub.x, s.hub.y, s.hub.z));
+  });
+  pieceSolid.instanceMatrix.needsUpdate = true;
+  pieceWire.instanceMatrix.needsUpdate = true;
+
+  const netGeo = new THREE.BufferGeometry();
+  netGeo.setAttribute("position", new THREE.Float32BufferAttribute(netVerts, 3));
+  const netLines = new THREE.LineSegments(netGeo, new THREE.LineBasicMaterial({
+    color: ACCENT, transparent: true, opacity: 0
+  }));
+  world.add(netLines);
+
+  // Bright points at each hub
+  world.add(new THREE.Points(
+    new THREE.BufferGeometry().setFromPoints(hubs),
+    new THREE.PointsMaterial({
+      color: 0xffffff, size: 0.12, transparent: true, opacity: 0.95,
+      depthWrite: false, blending: THREE.AdditiveBlending
+    })
+  ));
+
+  // Assembly loop: the shards and every tower piece fly apart and lock back together
+  const t0 = performance.now();
+  const CYCLE = 12000; // ms for one assemble, hold, scatter, rest cycle
+  function cyclePhase(now) {
+    const p = ((now - t0) % CYCLE) / CYCLE;
+    if (p < 0.35) return p / 0.35;               // assemble
+    if (p < 0.7) return 1;                       // hold
+    if (p < 0.9) return 1 - (p - 0.7) / 0.2;     // scatter
+    return 0;                                    // rest
+  }
+  const clamp01 = x => Math.min(1, Math.max(0, x));
+  const easeOut = x => 1 - Math.pow(1 - x, 3);
+
+  // Globe shards
+  const SHARDS = 700;
+  const shardGeo = new THREE.BoxGeometry(0.1, 0.1, 0.03);
+  const shards = new THREE.InstancedMesh(
+    shardGeo,
+    new THREE.MeshPhongMaterial({ color: 0x3a1214, emissive: 0x2a0a0b, shininess: 40 }),
+    SHARDS
+  );
+  world.add(shards);
+
+  const zAxis = new THREE.Vector3(0, 0, 1);
+  const shardHome = [], shardStart = [], shardQHome = [], shardQStart = [], shardDelay = [];
+  const goldenAngle = Math.PI * (3 - Math.sqrt(5));
+  for (let i = 0; i < SHARDS; i++) {
+    const y = 1 - (2 * (i + 0.5)) / SHARDS;
+    const rr = Math.sqrt(1 - y * y);
+    const th = goldenAngle * i;
+    const dir = new THREE.Vector3(Math.cos(th) * rr, y, Math.sin(th) * rr);
+    shardHome.push(dir.clone().multiplyScalar(R * 1.004));
+    shardStart.push(dir.clone().multiplyScalar(R * (3 + Math.random() * 3))
+      .add(new THREE.Vector3().randomDirection().multiplyScalar(2)));
+    shardQHome.push(new THREE.Quaternion().setFromUnitVectors(zAxis, dir));
+    shardQStart.push(new THREE.Quaternion().setFromEuler(
+      new THREE.Euler(Math.random() * 6, Math.random() * 6, Math.random() * 6)));
+    shardDelay.push(Math.random() * 0.6);
+  }
+
+  // Links between neighbouring shards
+  const shardLinkVerts = [];
+  for (let i = 0; i < SHARDS; i++) {
+    for (let j = i + 1; j < SHARDS; j++) {
+      if (shardHome[i].distanceTo(shardHome[j]) < 0.5) {
+        const u = shardHome[i], v = shardHome[j];
+        shardLinkVerts.push(u.x, u.y, u.z, v.x, v.y, v.z);
+      }
+    }
+  }
+  const shardLinkGeo = new THREE.BufferGeometry();
+  shardLinkGeo.setAttribute("position", new THREE.Float32BufferAttribute(shardLinkVerts, 3));
+  const shardLinkMat = new THREE.LineBasicMaterial({ color: ACCENT, transparent: true, opacity: 0 });
+  world.add(new THREE.LineSegments(shardLinkGeo, shardLinkMat));
+
+  // Tower pieces: each one starts scattered and flies to its place in the district
+  const pieceStart = [], pieceStartQ = [], pieceDelay = [];
+  homes.forEach(h => {
+    pieceStart.push(h.p.clone().multiplyScalar(2.5 + Math.random() * 2)
+      .add(new THREE.Vector3().randomDirection().multiplyScalar(2)));
+    pieceStartQ.push(new THREE.Quaternion().setFromEuler(
+      new THREE.Euler(Math.random() * 6, Math.random() * 6, Math.random() * 6)));
+    pieceDelay.push(Math.random() * 0.6);
+  });
+
+  const sPos = new THREE.Vector3(), sQ = new THREE.Quaternion();
+  const sOne = new THREE.Vector3(1, 1, 1), sM = new THREE.Matrix4();
+  const pPos = new THREE.Vector3(), pQ = new THREE.Quaternion(), pM = new THREE.Matrix4();
+
+  // a runs from 0 (scattered) to 1 (assembled)
+  function assemble(a) {
+    for (let i = 0; i < SHARDS; i++) {
+      const e = easeOut(clamp01((a - shardDelay[i]) / 0.4));
+      sPos.lerpVectors(shardStart[i], shardHome[i], e);
+      sQ.slerpQuaternions(shardQStart[i], shardQHome[i], e);
+      sM.compose(sPos, sQ, sOne);
+      shards.setMatrixAt(i, sM);
+    }
+    shards.instanceMatrix.needsUpdate = true;
+
+    homes.forEach((h, k) => {
+      const e = easeOut(clamp01((a - pieceDelay[k]) / 0.4));
+      pPos.lerpVectors(pieceStart[k], h.p, e);
+      pQ.slerpQuaternions(pieceStartQ[k], h.q, e);
+      pM.compose(pPos, pQ, h.s);
+      pieceSolid.setMatrixAt(k, pM);
+      pieceWire.setMatrixAt(k, pM);
+    });
+    pieceSolid.instanceMatrix.needsUpdate = true;
+    pieceWire.instanceMatrix.needsUpdate = true;
+
+    earth.material.opacity = 1;
+    netLines.material.opacity = 0.5;
+    shardLinkMat.opacity = clamp01((a - 0.5) / 0.3) * 0.35;
+                                             }
+    // Arcs between hubs, with light pulses travelling along them
+  const curves = [];
+  for (let i = 0; i < 22; i++) {
+    const A = hubs[(i * 3) % hubs.length];
+    const B = hubs[(i * 5 + 4) % hubs.length];
+    if (A === B) continue;
+    const mid = A.clone().add(B).multiplyScalar(0.5).normalize()
+      .multiplyScalar(R + A.distanceTo(B) * 0.4);
+    const curve = new THREE.QuadraticBezierCurve3(A, mid, B);
+    curves.push(curve);
+    world.add(new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(curve.getPoints(60)),
+      new THREE.LineBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.28 })
+    ));
+  }
+
+  const PACKETS = 40;
+  const pkPos = new Float32Array(PACKETS * 3);
+  const pkGeo = new THREE.BufferGeometry();
+  pkGeo.setAttribute("position", new THREE.BufferAttribute(pkPos, 3));
+  world.add(new THREE.Points(pkGeo, new THREE.PointsMaterial({
+    color: 0xffffff, size: 0.09, transparent: true, opacity: 0.95,
+    depthWrite: false, blending: THREE.AdditiveBlending
+  })));
+  const packets = Array.from({ length: PACKETS }, (_, i) => ({
+    c: i % curves.length,
+    t: Math.random(),
+    v: reduce ? 0 : 0.003 + Math.random() * 0.005
+  }));
+
+  const tmp = new THREE.Vector3();
+  function updatePackets() {
+    packets.forEach((p, i) => {
+      p.t += p.v;
+      if (p.t > 1) p.t -= 1;
+      tmp.copy(curves[p.c].getPoint(p.t));
+      pkPos[i * 3] = tmp.x;
+      pkPos[i * 3 + 1] = tmp.y;
+      pkPos[i * 3 + 2] = tmp.z;
+    });
+    pkGeo.attributes.position.needsUpdate = true;
+  }
+
+  // Orbit rings with satellites. They draw through the globe, dimmed when behind it.
+  const orbits = [0, 1, 2].map(i => {
+    const radius = R * (1.3 + i * 0.22);
+    const holder = new THREE.Group();
+    holder.rotation.set(1.0 + i * 0.4, 0, i * 0.9);
+    const spinner = new THREE.Group();
+    holder.add(spinner);
+    const ringMat = new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0.2, depthTest: false });
+    spinner.add(new THREE.Mesh(new THREE.TorusGeometry(radius, 0.008, 6, 180), ringMat));
+    const satMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, depthTest: false });
+    const sat = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 12), satMat);
+    sat.position.set(radius, 0, 0);
+    sat.renderOrder = 2;
+    spinner.add(sat);
+    world.add(holder);
+    return { spinner, speed: 0.006 - i * 0.002, sat, satMat, ringMat };
+  });
+
+  // Background starfield
+  const starPts = [];
+  for (let i = 0; i < 1200; i++) {
+    starPts.push(new THREE.Vector3().randomDirection().multiplyScalar(22 + Math.random() * 40));
+  }
+  const stars = new THREE.Points(
+    new THREE.BufferGeometry().setFromPoints(starPts),
+    new THREE.PointsMaterial({ color: 0xe4ebe9, size: 0.06, transparent: true, opacity: 0.5 })
+  );
+  scene.add(stars);
+
+  // Glow post-processing
+  const composer = new EffectComposer(renderer);
+  composer.addPass(new RenderPass(scene, camera));
+  composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), 0.6, 0.5, 0.45));
+  composer.addPass(new OutputPass());
+
+  // Sizing: pull the camera back on narrow phones so the Earth fits
+  function resize() {
+    const r = canvas.getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    composer.setSize(r.width, r.height);
+    camera.aspect = r.width / r.height;
+    camera.position.z = camera.aspect < 0.8 ? 17 : 12;
+    camera.updateProjectionMatrix();
+  }
+  addEventListener("resize", () => { resize(); if (reduce) render(); });
+  resize();
+
+  // Pointer, hover, click, drag
+  const ray = new THREE.Raycaster();
+  const ndc = new THREE.Vector2();
+  let px = 0, py = 0, hovered = null;
+  let dragging = false, lastX = 0, dragX = 0, moved = 0;
+
+  // Returns the project pin in front of the Earth, or null
+  function pick(e) {
+    const r = canvas.getBoundingClientRect();
+    ndc.x = ((e.clientX - r.left) / r.width) * 2 - 1;
+    ndc.y = -((e.clientY - r.top) / r.height) * 2 + 1;
+    ray.setFromCamera(ndc, camera);
+    const targets = [earth, ...projectPins.map(p => p.hit)];
+    const hit = ray.intersectObjects(targets, false)[0];
+    return hit && hit.object.userData.project ? hit.object : null;
+  }
+
+  hero.addEventListener("pointermove", e => {
+    px = e.clientX / innerWidth - 0.5;
+    py = e.clientY / innerHeight - 0.5;
+
+    if (dragging) {
+      dragX += (e.clientX - lastX) * 0.005;
+      lastX = e.clientX;
+      moved += Math.abs(e.movementX) + Math.abs(e.movementY);
+    }
+
+    hovered = pick(e);
+    canvas.style.cursor = hovered ? "pointer" : "";
+    if (hovered) {
+      const hr = hero.getBoundingClientRect();
+      tip.textContent = hovered.userData.project.name;
+      tip.style.opacity = 1;
+      tip.style.transform = `translate(${e.clientX - hr.left + 14}px, ${e.clientY - hr.top + 14}px)`;
+    } else {
+      tip.style.opacity = 0;
+    }
+    if (reduce) render();
+  });
+
+  hero.addEventListener("pointerdown", e => {
+    dragging = true;
+    lastX = e.clientX;
+    moved = 0;
+  });
+
+  addEventListener("pointerup", e => {
+    dragging = false;
+    if (e.target.closest && e.target.closest("a")) return; // let buttons work normally
+    if (moved < 6) {
+      const s = pick(e);
+      if (s) window.open(s.userData.project.repo, "_blank", "noopener");
+    }
+  });
+
+  // Animation
+  let spin = 0, tiltX = 0, t = 0;
+  const wp = new THREE.Vector3();
+  function render() {
+    window.__globeOK = true;
+    statusEl.textContent = "";
+    assemble(reduce ? 1 : cyclePhase(performance.now()));
+
+    if (!reduce) {
+      spin += 0.0009;
+      t += 0.01;
+      clouds.rotation.y += 0.0004;
+      orbits.forEach(o => { o.spinner.rotation.z += o.speed; });
+      stars.rotation.y += 0.0001;
+      updatePackets();
+    }
+
+    // Ripples expand and fade
+    ripples.forEach(r => {
+      const k = (t * 0.5 + r.off) % 1;
+      r.ring.scale.setScalar(1 + k * 2.2);
+      r.ring.material.opacity = (1 - k) * 0.8;
+    });
+
+    // Project pins grow when hovered
+    projectPins.forEach(p => {
+      p.core.scale.setScalar(p.hit === hovered ? 2.6 : 1.8);
+    });
+
+    tiltX += (py * 0.6 - tiltX) * 0.05;
+    world.rotation.set(tiltX, spin + px * 0.8 + dragX, 0);
+
+    // Satellites behind the Earth stay visible but dimmer
+    orbits.forEach(o => {
+      o.sat.getWorldPosition(wp);
+      const behind = wp.z < 0;
+      o.satMat.opacity = behind ? 0.35 : 1;
+      o.ringMat.opacity = behind ? 0.08 : 0.2;
+    });
+
+    composer.render();
+  }
+
+  // Animate only while the hero is on screen; reduced motion draws on input
+  let running = false;
+  function loop() {
+    render();
+    if (running) requestAnimationFrame(loop);
+  }
+
+  if (reduce) {
+    render();
+  } else {
+    new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting && !running) {
+        running = true;
+        loop();
+      } else if (!entry.isIntersecting) {
+        running = false;
+      }
+    }).observe(hero);
+  }
+}
+</script>
+
+</body>
+</html>
