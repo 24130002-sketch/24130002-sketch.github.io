@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>24130002-sketch</title>
+<meta name="description" content="Cybersecurity and networking projects by 24130002-sketch.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0c0f12;
+  --line:#243039;
+  --text:#e4ebe9;
+  --muted:#8a9a96;
+  --signal:#76dccb;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--ink);color:var(--text);font-family:"Archivo",system-ui,sans-serif;line-height:1.6;font-size:1.0625rem}
+a{color:var(--signal);text-decoration:none}
+a:hover{text-decoration:underline}
+:focus-visible{outline:2px solid var(--signal);outline-offset:3px}
+
+.wrap{max-width:960px;margin:0 auto;padding:0 1.25rem}
+
+.hero{position:relative;min-height:94vh;display:flex;align-items:flex-end;overflow:hidden;border-bottom:1px solid var(--line)}
+#net{position:absolute;inset:0;width:100%;height:100%;z-index:0;touch-action:pan-y}
+.hero-copy{position:relative;z-index:1;padding:6rem 1.25rem 4rem;pointer-events:none}
+.hero-copy .btn{pointer-events:auto}
+h1{font-stretch:125%;font-weight:800;font-size:clamp(2.6rem,7vw,5.2rem);line-height:.98;letter-spacing:-.02em;max-width:12ch}
+.lede{margin-top:1.25rem;max-width:44ch;color:var(--muted)}
+.hint{margin-top:.9rem;font-size:.85rem;color:var(--muted);opacity:.8}
+.links{margin-top:2rem;display:flex;gap:1rem;flex-wrap:wrap}
+.btn{display:inline-block;padding:.7rem 1.2rem;border:1px solid var(--signal);border-radius:4px;color:var(--ink);background:var(--signal);font-weight:600}
+.btn.ghost{background:transparent;color:var(--signal)}
+.btn:hover{text-decoration:none;filter:brightness(1.08)}
+
+.tip{position:absolute;left:0;top:0;pointer-events:none;opacity:0;z-index:2;white-space:nowrap;background:rgba(12,15,18,.9);border:1px solid var(--line);color:var(--text);padding:.3rem .6rem;font-size:.9rem;border-radius:3px;transition:opacity .2s}
+
+section{padding:5rem 0;border-bottom:1px solid var(--line)}
+h2{font-stretch:112%;font-weight:700;font-size:1.6rem;margin-bottom:2rem}
+
+.projects{display:grid;gap:1px;background:var(--line);border:1px solid var(--line)}
+.project{background:var(--ink);padding:2rem;display:flex;flex-direction:column;gap:.6rem}
+.project h3{font-size:1.25rem;font-weight:700}
+.project p{color:var(--muted);max-width:60ch}
+.tags{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:auto;padding-top:.6rem;list-style:none}
+.tags li{font-size:.85rem;color:var(--signal);border:1px solid var(--line);padding:.15rem .6rem;border-radius:3px}
+
+.about p{max-width:62ch;color:var(--muted)}
+.about p+p{margin-top:1rem}
+
+footer{padding:2.5rem 0;color:var(--muted);font-size:.9rem}
+
+@media (min-width:720px){.projects{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <canvas id="net" aria-hidden="true"></canvas>
+  <div class="tip" id="tip" role="status"></div>
+  <div class="wrap hero-copy">
+    <h1>Learning how networks talk, and where they leak.</h1>
+    <p class="lede">I'm studying cybersecurity and networking. This is where I keep the tools I build and what I learn from them.</p>
+    <p class="hint">Drag to spin the Earth. Tap a bright pin to open its project.</p>
+    <div class="links">
+      <a class="btn" href="#work">See projects</a>
+      <a class="btn ghost" href="https://github.com/24130002-sketch">GitHub</a>
+    </div>
+  </div>
+</header>
+
+<section id="work">
+  <div class="wrap">
+    <h2>Projects</h2>
+    <div class="projects" id="projects"></div>
+  </div>
+</section>
+
+<section id="about">
+  <div class="wrap about">
+    <h2>About</h2>
+    <p>I'm working through networking fundamentals and security tooling by building small, practical projects. Each one is a way to test what I've read against a real network.</p>
+    <p>Currently focused on network scanning, host discovery, and packet analysis.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">24130002-sketch</div>
+</footer>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+
+/* ---------- Projects: edit this list ---------- */
+const PROJECTS = [
+  {
+    nam
